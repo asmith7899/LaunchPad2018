@@ -4,6 +4,7 @@
     <item android:id="@+id/call_SW"
         android:title="@string/call_SW"
         android:visible="true"
+        android:icon="@drawable/ic_main_phone"
         app:showAsAction="ifRoom" />
     <item android:id="@+id/text_friend"
         android:title="@string/Text_A_Friend"
