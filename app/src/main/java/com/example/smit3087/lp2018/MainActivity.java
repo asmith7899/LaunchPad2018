@@ -1,7 +1,12 @@
 package com.example.smit3087.lp2018;
 
+import android.content.Intent;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -42,5 +47,31 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         LatLng sydney = new LatLng(-34, 151);
         mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+    }
+    public boolean onCreateOptionsMenu(Menu menu) {
+        new MenuInflater(this).inflate(R.menu.options_menu, menu);
+        return (super.onCreateOptionsMenu(menu));
+    }
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.call_SW) {
+
+        }
+        if (item.getItemId() == R.id.plan_trip) {
+            startActivity(new Intent(MainActivity.this, Main_to_Plan.class));
+            return true;
+        }
+        if (item.getItemId() == R.id.text_friend) {
+
+        }
+        return super.onOptionsItemSelected(item);
+    }
+    public void planTrip(View view) {
+
+    }
+    public void configureText(View view) {
+
+    }
+    public void configureCall(View view) {
+
     }
 }

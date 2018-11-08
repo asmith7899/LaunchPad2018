@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">LP2018</string>
     <string name="title_activity_main">Map</string>
+    <string name="Plan_Trip">Plan Trip</string>
+    <string name="call_SW">Call SafeWalk</string>
+    <string name="Text_A_Friend">Text a Friend</string>
 </resources>

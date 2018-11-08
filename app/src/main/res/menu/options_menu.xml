@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/call_SW"
+        android:title="@string/call_SW"
+        android:visible="true"
+        app:showAsAction="ifRoom" />
+    <item android:id="@+id/text_friend"
+        android:title="@string/Text_A_Friend"
+        android:visible="true"
+        app:showAsAction="ifRoom" />
+    <item android:id="@+id/plan_trip"
+        android:title="@string/Plan_Trip"
+        android:visible="true"
+        app:showAsAction="ifRoom" />
+</menu>
