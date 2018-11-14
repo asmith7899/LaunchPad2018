@@ -147,22 +147,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     //this code retrieves the user's chosen place
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == PLACE_PICKER_REQUEST) {
-            if (resultCode == RESULT_OK) {
-                Place place = PlacePicker.getPlace(data, this);
-                String toastMsg = String.format("Place: %s", place.getName());
-                Toast.makeText(this, toastMsg, Toast.LENGTH_LONG).show();
-
-                //I am not 100% sure at that this directions method is in the right place
-                //also I need to define origin, destination and figure out getGeoContext
-                //I set mode to walking automatically, Idk if that's ok
-                //can I use place.toString()?
-                //I'm assuming that getGeo means 'find where I am', and
-                //DirectionsResult result = DirectionsApi.newRequest(getGeoContext()).mode
-                      //  (TravelMode.WALKING).origin(origin).destination(place.toString()).departureTime(now)
-
-            }
-        }
         if (requestCode == AUTOCOMPLETE_REQUEST_CODE) {
             if (resultCode == RESULT_OK) {
                 Place place = PlaceAutocomplete.getPlace(this, data);
