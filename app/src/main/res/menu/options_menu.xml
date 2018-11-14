@@ -6,19 +6,16 @@
         android:icon="@drawable/ic_main_phone"
         android:title="@string/call_SW"
         android:visible="true"
-        android:onClick="onOptionsItemSelected(this)"
         app:showAsAction="always" />
     <item
         android:id="@+id/text_friend"
         android:icon="@drawable/ic_main_text"
         android:title="@string/Text_A_Friend"
         android:visible="true"
-        android:onClick="onOptionsItemSelected(this)"
         app:showAsAction="always" />
     <item
         android:id="@+id/plan_trip"
         android:icon="@drawable/ic_main_group"
         android:title="@string/Plan_Trip"
-        android:onClick="onOptionsItemSelected(this)"
         app:showAsAction="always" />
 </menu>
