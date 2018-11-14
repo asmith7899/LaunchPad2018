@@ -1,17 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/call_SW"
+    <item
+        android:id="@+id/call_SW"
+        android:icon="@drawable/ic_main_phone"
         android:title="@string/call_SW"
         android:visible="true"
-        android:icon="@drawable/ic_main_phone"
-        app:showAsAction="ifRoom" />
-    <item android:id="@+id/text_friend"
+        android:onClick="onOptionsItemSelected(this)"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/text_friend"
+        android:icon="@drawable/ic_main_text"
         android:title="@string/Text_A_Friend"
         android:visible="true"
-        app:showAsAction="ifRoom" />
-    <item android:id="@+id/plan_trip"
+        android:onClick="onOptionsItemSelected(this)"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/plan_trip"
+        android:icon="@drawable/ic_main_group"
         android:title="@string/Plan_Trip"
-        android:visible="true"
-        app:showAsAction="ifRoom" />
+        android:onClick="onOptionsItemSelected(this)"
+        app:showAsAction="always" />
 </menu>
