@@ -1,25 +1,27 @@
 package com.example.smit3087.lp2018;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
-import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -37,27 +39,38 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.maps.android.PolyUtil;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.List;
 
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
     private MapView mapView;
-    private static final int PLACE_PICKER_REQUEST = 1;
     private static final int AUTOCOMPLETE_REQUEST_CODE = 1;
-    private String TAG = "";
     private LocationManager locationManager;
     private LocationListener locationListener;
     private LatLng dest;
     private LocationRequest locationRequest;
-    private LocationCallback locationCallback;
     private LatLng curLocation;
     private FusedLocationProviderClient providerClient;
+    private RequestQueue requestQueue;
+    private LocationCallback locationCallback;
+    private Polyline curPoly;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        requestQueue = Volley.newRequestQueue(this);
+
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         providerClient = LocationServices.getFusedLocationProviderClient(this);
         locationRequest = LocationRequest.create()
@@ -94,11 +107,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     /**
      * Manipulates the map once available.
      * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
+     * This is where we can add markers or lines, add listeners or move the camera.
      */
 
 
@@ -110,15 +119,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION,
                         Manifest.permission.INTERNET}, 12);
             }
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
             return;
         }
-        //this line updates out location constantly
+        //this line updates location
         mMap.setMyLocationEnabled(true);
         providerClient.requestLocationUpdates(locationRequest, locationCallback, getMainLooper());
     }
@@ -127,13 +130,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         requestLocation();
-        // Add a marker in Sydney and move the camera
-        LatLng sydney = new LatLng(-34, 151);
-       // mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-       // mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
 
         //defines picker request code and builds intent builder for place picker
-        //tries to lauch place picker, throws some exceptions
         try {
             Intent intent = new PlaceAutocomplete.IntentBuilder(PlaceAutocomplete.MODE_OVERLAY).build(this);
             startActivityForResult(intent, AUTOCOMPLETE_REQUEST_CODE);
@@ -151,16 +149,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             if (resultCode == RESULT_OK) {
                 Place place = PlaceAutocomplete.getPlace(this, data);
                 dest = place.getLatLng();
-                //I couldn't find the TAG variable in the generated java, so I made a new null String.
-                //I'm not sure what TAG is supposed to be, so I don't know how important it is that it's null
-                Log.i(TAG, "Place: " + place.getName());
-               // DirectionsResult result = DirectionsApi.newRequest(getGeoContext()).mode
-                 //       (TravelMode.WALKING).origin(origin).destination(place.toString()).departureTime(now)
+                getDirections();
+                getDistance(); //consider storing in variable, using button to display info
                 //After this I should handle result error and result cancelled - the above only handles valid places
             }
         }
     }
-
 
     public void findDestination(View view) {
         try {
@@ -172,13 +166,88 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             e.printStackTrace();
         }
     }
+    //creates polyline for directions
+    public void getDirections() {
+        if (curLocation == null) {
+            Toast.makeText(getApplicationContext(), "Retrieving location - Try Again", Toast.LENGTH_LONG).show();
+            return;
+        }
+        String url = "https://maps.googleapis.com/maps/api/directions/json?" +
+                "origin=" + curLocation.latitude + "," + curLocation.longitude +
+                "&destination=" + dest.latitude + "," + dest.longitude +
+                "&mode=walking" +
+                "&key=" + getString(R.string.google_maps_key);
+        StringRequest request = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
+            //callback for string request
+            @Override
+            public void onResponse(String response) {
+                try {
+                    JSONObject data = new JSONObject(response);
+                    String encodedPolyline = data.getJSONArray("routes").getJSONObject(0).
+                            getJSONObject("overview_polyline").getString("points");
+                    List<LatLng> points = PolyUtil.decode(encodedPolyline);
+                    if (curPoly != null) {
+                        curPoly.remove();
+                    }
+                    curPoly = mMap.addPolyline(new PolylineOptions().addAll(points));
+                    curPoly.setColor(getColor(R.color.colorAccent));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(getApplicationContext(), "Error retrieving directions", Toast.LENGTH_LONG).show();
+            }
+        });
+        requestQueue.add(request);
+    }
+
+    //gets distance between origin and destination
+    public void getDistance() {
+        if (curLocation == null) {
+            Toast.makeText(getApplicationContext(), "Retrieving location - Try Again", Toast.LENGTH_LONG).show();
+            return;
+        }
+        String url = "https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial" +
+                "&origins=" + curLocation.latitude + "," + curLocation.longitude +
+                "&destinations=" + dest.latitude + "," + dest.longitude +
+                "&mode=walking" +
+                "&key=" + getString(R.string.google_maps_key);
+        StringRequest request = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
+
+            //callback for when get distance returns data
+            @Override
+            public void onResponse(String response) {
+                try {
+                    JSONObject data = new JSONObject(response);
+                    String distance = data.getJSONArray("rows").getJSONObject(0).getJSONArray("elements")
+                            .getJSONObject(0).getJSONObject("distance").getString("text");
+                    String duration = data.getJSONArray("rows").getJSONObject(0).getJSONArray("elements")
+                            .getJSONObject(0).getJSONObject("duration").getString("text");
+                    Toast.makeText(getApplicationContext(), "Distance: " + distance + "\nDuration: " + duration, Toast.LENGTH_LONG).show();
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(getApplicationContext(), "Error retrieving directions", Toast.LENGTH_LONG).show();
+            }
+        });
+        requestQueue.add(request);
+    }
+
     //this code create my options menu
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.options_menu, menu);
         return true;
     }
 
-    //this code repsonds to options sbeing clicked (launches new activities)
+    //this code responds to options being clicked (launches new activities)
     public boolean onOptionsItemSelected(MenuItem item) {
         //if user selects 'call safewalk'
         if (item.getItemId() == R.id.call_SW) {
@@ -194,5 +263,20 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    //stops pinging for location when app is closed
+    @Override
+    protected void onPause() {
+        super.onPause();
+        providerClient.removeLocationUpdates(locationCallback);
+    }
+    //resumes once map is created
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (mMap != null) {
+            requestLocation();
+        }
     }
 }
