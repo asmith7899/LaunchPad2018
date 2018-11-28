@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Build;
 import android.support.v4.app.ActivityCompat;
 import android.os.Bundle;
@@ -46,6 +47,7 @@ import com.google.maps.android.PolyUtil;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.net.URI;
 import java.util.List;
 
 
@@ -63,6 +65,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private RequestQueue requestQueue;
     private LocationCallback locationCallback;
     private Polyline curPoly;
+    private static final int PHONE_REQUEST = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -251,7 +254,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public boolean onOptionsItemSelected(MenuItem item) {
         //if user selects 'call safewalk'
         if (item.getItemId() == R.id.call_SW) {
-
+            Intent callIntent = new Intent(Intent.ACTION_CALL);
+            callIntent.setData(Uri.parse("tel:2603504538")); //Once tested, change # to safewalk
+            if (ActivityCompat.checkSelfPermission(this,
+                    Manifest.permission.CALL_PHONE) !=
+                    PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.CALL_PHONE},
+                        PHONE_REQUEST);
+            } else {
+                startActivity(callIntent);
+            }
         }
         //plan trip
         if (item.getItemId() == R.id.plan_trip) {

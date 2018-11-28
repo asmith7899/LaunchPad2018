@@ -4,4 +4,8 @@
     <string name="Plan_Trip">Plan Trip</string>
     <string name="call_SW">Call SafeWalk</string>
     <string name="Text_A_Friend">Text a Friend</string>
+    <string name="failure_permission">Phone permissions not granted</string>
+    <string name="permission_not_granted">SMS permission not granted</string>
+    <string name="sms_hint">Phone Number</string>
+    <string name="sms_message_hint">Enter your message here...</string>
 </resources>
