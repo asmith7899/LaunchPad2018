@@ -40,7 +40,7 @@ final static int SMS_REQUEST = 1;
                     // Permission was granted.
                 } else {
                     // Permission denied.
-                    Toast.makeText(MainActivity.this,
+                    Toast.makeText(this,
                             getString(R.string.failure_permission),
                             Toast.LENGTH_SHORT).show();
                     // Disable the message button.

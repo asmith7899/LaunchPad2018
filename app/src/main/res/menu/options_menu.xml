@@ -2,6 +2,12 @@
 <menu xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android">
     <item
+        android:id="@+id/route_info"
+        android:icon="@drawable/ic_route"
+        android:title="@string/route_info_string"
+        app:showAsAction="always"
+        />
+    <item
         android:id="@+id/call_SW"
         android:icon="@drawable/ic_main_phone"
         android:title="@string/call_SW"
@@ -18,4 +24,5 @@
         android:icon="@drawable/ic_main_group"
         android:title="@string/Plan_Trip"
         app:showAsAction="always" />
+
 </menu>

@@ -1,6 +1,7 @@
 package com.example.smit3087.lp2018;
 
 import android.Manifest;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -8,13 +9,17 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -66,6 +71,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LocationCallback locationCallback;
     private Polyline curPoly;
     private static final int PHONE_REQUEST = 1;
+    private String distance, duration;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -135,14 +141,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         requestLocation();
 
         //defines picker request code and builds intent builder for place picker
-        try {
-            Intent intent = new PlaceAutocomplete.IntentBuilder(PlaceAutocomplete.MODE_OVERLAY).build(this);
-            startActivityForResult(intent, AUTOCOMPLETE_REQUEST_CODE);
-        } catch (GooglePlayServicesNotAvailableException e) {
-            e.printStackTrace();
-        } catch (GooglePlayServicesRepairableException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            Intent intent = new PlaceAutocomplete.IntentBuilder(PlaceAutocomplete.MODE_OVERLAY).build(this);
+//            startActivityForResult(intent, AUTOCOMPLETE_REQUEST_CODE);
+//        } catch (GooglePlayServicesNotAvailableException e) {
+//            e.printStackTrace();
+//        } catch (GooglePlayServicesRepairableException e) {
+//            e.printStackTrace();
+//        }
     }
 
     //this code retrieves the user's chosen place
@@ -225,11 +231,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onResponse(String response) {
                 try {
                     JSONObject data = new JSONObject(response);
-                    String distance = data.getJSONArray("rows").getJSONObject(0).getJSONArray("elements")
+                    distance = data.getJSONArray("rows").getJSONObject(0).getJSONArray("elements")
                             .getJSONObject(0).getJSONObject("distance").getString("text");
-                    String duration = data.getJSONArray("rows").getJSONObject(0).getJSONArray("elements")
+                    duration = data.getJSONArray("rows").getJSONObject(0).getJSONArray("elements")
                             .getJSONObject(0).getJSONObject("duration").getString("text");
-                    Toast.makeText(getApplicationContext(), "Distance: " + distance + "\nDuration: " + duration, Toast.LENGTH_LONG).show();
 
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -254,17 +259,34 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public boolean onOptionsItemSelected(MenuItem item) {
         //if user selects 'call safewalk'
         if (item.getItemId() == R.id.call_SW) {
-            Intent callIntent = new Intent(Intent.ACTION_CALL);
-            callIntent.setData(Uri.parse("tel:2603504538")); //Once tested, change # to safewalk
-            if (ActivityCompat.checkSelfPermission(this,
-                    Manifest.permission.CALL_PHONE) !=
-                    PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.CALL_PHONE},
-                        PHONE_REQUEST);
-            } else {
-                startActivity(callIntent);
-            }
+            AlertDialog.Builder builder = new AlertDialog.Builder(this).
+                    setTitle("Call SafeWalk?").
+                    setMessage("Do you want to make a call to SafeWalk's direct number?").
+                    setPositiveButton(android.R.string.yes,
+                    new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Intent callIntent = new Intent(Intent.ACTION_CALL);
+                            callIntent.setData(Uri.parse("tel:2603504538")); //Once tested, change # to safewalk
+                            if (ActivityCompat.checkSelfPermission(getApplicationContext(),
+                                    Manifest.permission.CALL_PHONE) !=
+                                    PackageManager.PERMISSION_GRANTED) {
+                                ActivityCompat.requestPermissions(getParent(),
+                                        new String[]{Manifest.permission.CALL_PHONE},
+                                        PHONE_REQUEST);
+                            } else {
+                                startActivity(callIntent);
+                            }
+
+                        }
+                    })
+                    .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+
+                        }
+                    });
+            builder.create().show();
         }
         //plan trip
         if (item.getItemId() == R.id.plan_trip) {
@@ -274,6 +296,23 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         //text buddy
         if (item.getItemId() == R.id.text_friend) {
 
+        }
+        if (item.getItemId() == R.id.route_info) {
+            CoordinatorLayout mainLayout = findViewById(R.id.Main_Layout);
+            if (distance == null && duration == null) {
+                Snackbar info = Snackbar.make(mainLayout, "No destination input", Snackbar.LENGTH_LONG);
+                info.show();
+            } else {
+                final Snackbar info = Snackbar.make(mainLayout, "Route info:\nDuration: " + duration + ", Distance: " + distance,
+                        Snackbar.LENGTH_INDEFINITE);
+                info.setAction(android.R.string.ok, new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                       info.dismiss();
+                    }
+                });
+                info.show();
+            }
         }
         return super.onOptionsItemSelected(item);
     }
