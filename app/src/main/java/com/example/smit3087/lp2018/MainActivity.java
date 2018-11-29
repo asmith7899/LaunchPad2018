@@ -15,10 +15,13 @@ import android.support.v4.app.ActivityCompat;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.telephony.SmsManager;
+import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
@@ -71,6 +74,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LocationCallback locationCallback;
     private Polyline curPoly;
     private static final int PHONE_REQUEST = 1;
+    private static final int SMS_REQUEST = 1;
     private String distance, duration;
 
     @Override
@@ -175,6 +179,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             e.printStackTrace();
         }
     }
+
     //creates polyline for directions
     public void getDirections() {
         if (curLocation == null) {
@@ -263,23 +268,23 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     setTitle("Call SafeWalk?").
                     setMessage("Do you want to make a call to SafeWalk's direct number?").
                     setPositiveButton(android.R.string.yes,
-                    new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            Intent callIntent = new Intent(Intent.ACTION_CALL);
-                            callIntent.setData(Uri.parse("tel:2603504538")); //Once tested, change # to safewalk
-                            if (ActivityCompat.checkSelfPermission(getApplicationContext(),
-                                    Manifest.permission.CALL_PHONE) !=
-                                    PackageManager.PERMISSION_GRANTED) {
-                                ActivityCompat.requestPermissions(getParent(),
-                                        new String[]{Manifest.permission.CALL_PHONE},
-                                        PHONE_REQUEST);
-                            } else {
-                                startActivity(callIntent);
-                            }
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Intent callIntent = new Intent(Intent.ACTION_CALL);
+                                    callIntent.setData(Uri.parse("tel:2603504538")); //Once tested, change # to safewalk
+                                    if (ActivityCompat.checkSelfPermission(getApplicationContext(),
+                                            Manifest.permission.CALL_PHONE) !=
+                                            PackageManager.PERMISSION_GRANTED) {
+                                        ActivityCompat.requestPermissions(getParent(),
+                                                new String[]{Manifest.permission.CALL_PHONE},
+                                                PHONE_REQUEST);
+                                    } else {
+                                        startActivity(callIntent);
+                                    }
 
-                        }
-                    })
+                                }
+                            })
                     .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
@@ -295,7 +300,54 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         //text buddy
         if (item.getItemId() == R.id.text_friend) {
+            final CoordinatorLayout mainLayout = findViewById(R.id.Main_Layout);
+            final String message;
+            final EditText phone = new EditText(this);
+            phone.setInputType(InputType.TYPE_CLASS_NUMBER);
+            AlertDialog.Builder builder = new AlertDialog.Builder(this).
+                    setTitle("Text A Friend").
+                    setMessage("Enter a valid phone number (numbers only)").
+                    setView(phone).
+                    setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            if (phone.getText() == null) {
+                                Snackbar info = Snackbar.make(mainLayout, "Please input a valid phone number", Snackbar.LENGTH_LONG);
+                                info.show();
+                            }
+                            final String number = phone.getText().toString();
+                            final EditText message = new EditText(getApplicationContext());
+                            AlertDialog.Builder builder = new AlertDialog.Builder(getApplicationContext()).
+                                    setTitle("Message A Friend").
+                                    setMessage("Enter the message to send to " + number).
+                                    setView(message).setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    if (message.getText() == null) {
+                                        Snackbar info = Snackbar.make(mainLayout, "Your message is empty!", Snackbar.LENGTH_LONG);
+                                        info.show();
+                                    } else {
+                                        String SMS = message.getText().toString();
+                                        SmsManager sm = SmsManager.getDefault();
+                                        sm.sendTextMessage(number, null, SMS, null, null);
+                                    }
+                                }
+                            })
+                                    .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
 
+                                        }
+                                    });
+                        }
+                    })
+                    .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+
+                        }
+                    });
+            builder.create().show();
         }
         if (item.getItemId() == R.id.route_info) {
             CoordinatorLayout mainLayout = findViewById(R.id.Main_Layout);
@@ -308,7 +360,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 info.setAction(android.R.string.ok, new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                       info.dismiss();
+                        info.dismiss();
                     }
                 });
                 info.show();
@@ -323,6 +375,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onPause();
         providerClient.removeLocationUpdates(locationCallback);
     }
+
     //resumes once map is created
     @Override
     protected void onResume() {
