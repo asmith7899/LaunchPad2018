@@ -327,9 +327,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                         Snackbar info = Snackbar.make(mainLayout, "Your message is empty!", Snackbar.LENGTH_LONG);
                                         info.show();
                                     } else {
-                                        String SMS = message.getText().toString();
-                                        SmsManager sm = SmsManager.getDefault();
-                                        sm.sendTextMessage(number, null, SMS, null, null);
+                                        if (ActivityCompat.checkSelfPermission(getApplicationContext(),
+                                                Manifest.permission.SEND_SMS) !=
+                                                PackageManager.PERMISSION_GRANTED) {
+                                            ActivityCompat.requestPermissions(getParent(),
+                                                    new String[]{Manifest.permission.SEND_SMS},
+                                                    SMS_REQUEST);
+                                        } else {
+                                            String SMS = message.getText().toString();
+                                            SmsManager sm = SmsManager.getDefault();
+                                            sm.sendTextMessage(number, null, SMS, null, null);
+                                        }
                                     }
                                 }
                             })
