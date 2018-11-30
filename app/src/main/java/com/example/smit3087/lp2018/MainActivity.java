@@ -311,42 +311,45 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            if (phone.getText() == null) {
+                            if (phone.getText() == null ||
+                                    (phone.getText().toString().length() != 7 || phone.getText().toString().length() != 10)) {
                                 Snackbar info = Snackbar.make(mainLayout, "Please input a valid phone number", Snackbar.LENGTH_LONG);
                                 info.show();
-                            }
-                            final String number = phone.getText().toString();
-                            final EditText message = new EditText(getApplicationContext());
-                            AlertDialog.Builder builder = new AlertDialog.Builder(getApplicationContext()).
-                                    setTitle("Message A Friend").
-                                    setMessage("Enter the message to send to " + number).
-                                    setView(message).setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    if (message.getText() == null) {
-                                        Snackbar info = Snackbar.make(mainLayout, "Your message is empty!", Snackbar.LENGTH_LONG);
-                                        info.show();
-                                    } else {
-                                        if (ActivityCompat.checkSelfPermission(getApplicationContext(),
-                                                Manifest.permission.SEND_SMS) !=
-                                                PackageManager.PERMISSION_GRANTED) {
-                                            ActivityCompat.requestPermissions(getParent(),
-                                                    new String[]{Manifest.permission.SEND_SMS},
-                                                    SMS_REQUEST);
+                            } else {
+                                final String number = phone.getText().toString();
+                                final EditText message = new EditText(getApplicationContext());
+                                AlertDialog.Builder builder = new AlertDialog.Builder(getApplicationContext()).
+                                        setTitle("Message A Friend").
+                                        setMessage("Enter the message to send to " + number).
+                                        setView(message).setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        if (message.getText() == null) {
+                                            Snackbar info = Snackbar.make(mainLayout, "Your message is empty!", Snackbar.LENGTH_LONG);
+                                            info.show();
                                         } else {
-                                            String SMS = message.getText().toString();
-                                            SmsManager sm = SmsManager.getDefault();
-                                            sm.sendTextMessage(number, null, SMS, null, null);
+                                            if (ActivityCompat.checkSelfPermission(getApplicationContext(),
+                                                    Manifest.permission.SEND_SMS) !=
+                                                    PackageManager.PERMISSION_GRANTED) {
+                                                ActivityCompat.requestPermissions(getParent(),
+                                                        new String[]{Manifest.permission.SEND_SMS},
+                                                        SMS_REQUEST);
+                                            } else {
+                                                String SMS = message.getText().toString();
+                                                SmsManager sm = SmsManager.getDefault();
+                                                sm.sendTextMessage(number, null, SMS, null, null);
+                                            }
                                         }
                                     }
-                                }
-                            })
-                                    .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
+                                })
+                                        .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
 
-                                        }
-                                    });
+                                            }
+                                        });
+                                builder.create().show();
+                            }
                         }
                     })
                     .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
