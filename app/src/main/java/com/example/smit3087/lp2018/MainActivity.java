@@ -311,8 +311,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            if (phone.getText() == null ||
-                                    (phone.getText().toString().length() != 7 || phone.getText().toString().length() != 10)) {
+                            if (phone.getText() == null) {// ||
+                                   // (phone.getText().toString().length() != 7 || phone.getText().toString().length() != 10)) {
                                 Snackbar info = Snackbar.make(mainLayout, "Please input a valid phone number", Snackbar.LENGTH_LONG);
                                 info.show();
                             } else {
